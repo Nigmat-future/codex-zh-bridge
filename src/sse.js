@@ -40,10 +40,11 @@ export function createSseRewriter({ translate, cache }) {
 
   const translateToZh = async (text, itemId) => {
     const zh = await translate(text, "zh");
-    if (typeof zh === "string" && zh !== text) {
-      cache.set(zh, text);
-    }
     const result = typeof zh === "string" ? zh : text;
+    // Always record the map, even when result === text (model already
+    // answered in Chinese): the displayed text then maps to itself, which
+    // is still the correct model-side text for history lookups.
+    cache.set(result, text);
     if (itemId !== undefined) zhById.set(itemId, result);
     return result;
   };
@@ -146,7 +147,7 @@ export async function rewriteJsonResponse(json, { translate, cache }) {
         (async () => {
           const zh = await translate(part.text, "zh");
           const result = typeof zh === "string" ? zh : part.text;
-          if (result !== part.text) cache.set(result, part.text);
+          cache.set(result, part.text);
           part.text = result;
         })()
       );

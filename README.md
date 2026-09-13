@@ -78,6 +78,8 @@ requires_openai_auth = true      # 使用 ChatGPT 登录；如果用 API key，�
 - 代码块、行内代码、URL、文件路径、XML 标签在翻译前会被占位符 `⟦0⟧` 替换，译后还原；占位符丢失时回退原文，bridge 永远不会因为翻译失败而弄坏 Codex。
 - 翻译失败的兜底永远是返回原文。
 
+**注意**：如果你的 `~/.codex/AGENTS.md` 或项目级 `AGENTS.md` 里有「Always respond in Chinese」之类的指令，请删掉——这类指令会随请求一起发给模型（实测 `-c project_doc_max_bytes=0` 并不能去掉用户级 AGENTS.md），模型会直接输出中文，bridge 只能把它原样映射回自己，等于翻译没发生。
+
 ## English
 
 `codex-zh-bridge` is a localhost HTTP proxy between Codex CLI and the OpenAI Responses API. Chinese user input is translated to English before the model sees it; the model's English output is translated back to Chinese before Codex displays it. A persistent client-text → model-text map (`~/.codex-zh-bridge/cache.json`) keeps assistant history in English even though Codex stores the displayed Chinese. Not translated: system prompts, tool calls/outputs, file contents, reasoning summaries. Streaming is per-message, not per-token. Set `BRIDGE_DISABLE=1` for pure passthrough; prefix a message with `!en ` to send it untranslated. Requires Node.js >= 20, zero runtime dependencies.

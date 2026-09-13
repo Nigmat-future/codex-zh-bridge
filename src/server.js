@@ -66,7 +66,7 @@ export function createServer({
     if (isResponses && !disabled) {
       try {
         const parsed = JSON.parse(bodyBuf.toString("utf8"));
-        sendBody = Buffer.from(JSON.stringify(await rewriteRequest(parsed, { translate, cache })));
+        sendBody = Buffer.from(JSON.stringify(await rewriteRequest(parsed, { translate, cache, log })));
         log.debug?.(
           `rewrite: input items rewritten, ${bodyBuf.length} -> ${sendBody.length} bytes`
         );

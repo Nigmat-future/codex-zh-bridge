@@ -4,7 +4,7 @@ function clone(value) {
   return value === undefined ? value : JSON.parse(JSON.stringify(value));
 }
 
-export async function rewriteRequest(body, { translate, cache }) {
+export async function rewriteRequest(body, { translate, cache, log }) {
   if (!body || typeof body !== "object") return body;
   const out = clone(body);
 
@@ -52,23 +52,38 @@ export async function rewriteRequest(body, { translate, cache }) {
   }
 
   const jobs = [];
+  let assistantParts = 0;
+  let assistantReplaced = 0;
+  let userTexts = 0;
+  const userTextLens = [];
   for (const item of items) {
     if (item?.type !== "message") continue;
     if (item.role === "user") {
       for (const part of item.content ?? []) {
         if (part?.type === "input_text" && typeof part.text === "string") {
+          userTexts++;
+          userTextLens.push(part.text.length);
           jobs.push(toModelText(part.text).then((t) => (part.text = t)));
         }
       }
     } else if (item.role === "assistant") {
       for (const part of item.content ?? []) {
         if (part?.type === "output_text" && typeof part.text === "string") {
+          assistantParts++;
           const hit = cache.get(part.text);
-          if (hit !== undefined) part.text = hit;
+          if (hit !== undefined) {
+            assistantReplaced++;
+            part.text = hit;
+          } else {
+            log?.debug?.(`assistant part missed cache: len=${part.text.length}`);
+          }
         }
       }
     }
   }
   await Promise.all(jobs);
+  log?.debug?.(
+    `assistant history: ${assistantParts} parts, ${assistantReplaced} replaced from cache; user texts: ${userTexts} (len ${userTextLens.join("/")}); instructions len=${out.instructions?.length ?? 0}`
+  );
   return out;
 }

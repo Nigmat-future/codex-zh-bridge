@@ -26,6 +26,7 @@ export function createTranslator({
     if (target === "en" && !hasCJK(text)) return text;
     if (target === "zh" && text.trim() === "") return text;
 
+    const started = Date.now();
     try {
       const { masked, restore } = mask(text);
       const ctrl = new AbortController();
@@ -55,9 +56,11 @@ export function createTranslator({
       const json = await res.json();
       const translated = json?.choices?.[0]?.message?.content;
       if (!translated || !translated.trim()) throw new Error("empty translation");
-      return restore(stripWrapper(translated));
+      const result = restore(stripWrapper(translated));
+      log.debug?.(`translate -> ${target}: ${text.length} -> ${result.length} chars changed=${result !== text} in ${Date.now() - started}ms`);
+      return result;
     } catch (err) {
-      log.warn?.(`translation to ${target} failed: ${err.message}`);
+      log.warn?.(`translation to ${target} failed (${Date.now() - started}ms): ${err.message}`);
       return text;
     }
   };
