@@ -1,0 +1,17 @@
+{
+  "name": "codex-zh-bridge",
+  "version": "0.1.0",
+  "description": "Local HTTP bridge between Codex CLI and the OpenAI Responses API that translates Chinese input to English and model output back to Chinese.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "codex-zh-bridge": "./bin/codex-zh-bridge.js"
+  },
+  "scripts": {
+    "start": "node bin/codex-zh-bridge.js",
+    "test": "node --test \"test/*.test.js\""
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
